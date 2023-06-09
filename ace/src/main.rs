@@ -1,7 +1,9 @@
 use clap::Parser;
 use crate::loader::load;
+use crate::parser::parse;
 
 pub mod loader;
+pub mod parser;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -13,10 +15,13 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    println!("{}", match load(args.file) {
-        Ok(str) => str,
-        Err(err) => err.to_string()
-    });
+    match load(args.file) {
+        Ok(contents) => {
+            let parsed = parse(contents);
+            println!("Parsed: {}", parsed);
+        },
+        Err(err) => ()
+    };
 
     // read a file
     // parse a file
