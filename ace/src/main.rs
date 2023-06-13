@@ -4,6 +4,7 @@ use clap::Parser;
 
 pub mod loader;
 pub mod parser;
+pub mod link;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]

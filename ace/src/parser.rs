@@ -1,12 +1,31 @@
 use nom::bytes::complete::{tag, take_until};
 use nom::character::complete::space0;
-use nom::sequence::{delimited, tuple};
 use nom::combinator::map;
+use nom::sequence::{delimited, tuple};
 use nom::IResult;
-pub fn parse(input: &str) -> IResult<&str, &str> {
-    map(
+use nom_locate::LocatedSpan;
+
+use crate::link::Link;
+
+pub fn parse(input: &str) -> IResult<&str, Link> {
+    let span = LocatedSpan::new(input);
+
+    let parsed_span = map(
         delimited(tuple((tag("[["), space0)), take_until("]]"), tag("]]")),
-        |s: &str| s.trim_end())(input)
+        |s: &str| s.trim_end(),
+    )(&span);
+
+    match parsed_span {
+        Ok(("", parsed)) => Ok((
+            "",
+            Link {
+                line: parsed.line,
+                offset: parsed.offset,
+                document: "blah",
+            },
+        )),
+        Err(_) => todo!(),
+    }
 }
 
 #[cfg(test)]
