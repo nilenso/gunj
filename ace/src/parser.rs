@@ -9,27 +9,31 @@ use nom_locate::LocatedSpan;
 
 use crate::link::{Link, Text};
 
-type Span<'a> = LocatedSpan<&'a str>;
+pub type Span<'a> = LocatedSpan<&'a str>;
 
 pub fn parse(input: Span) -> IResult<Span, Vec<Link>> {
     delimited(parse_text, separated_list0(parse_text, parse_link), parse_text)(input)
 }
 
 pub fn parse_text(input: Span) -> IResult<Span, Text> {
+    // consume everything but [[Text]]
     map(alt((take_until("[["), rest)), |s: Span| Text {
         line: s.location_line(),
         offset: s.location_offset(),
+        column: s.get_utf8_column(),
         content: s.fragment()
     })(input)
 }
 
 pub fn parse_link(input: Span) -> IResult<Span, Link> {
+    // consume [[    Text   ]]
     map(
         delimited(tuple((tag("[["), space0)), take_until("]]"), tag("]]")),
         |s: Span| Link {
             line: s.location_line(),
             offset: s.location_offset(),
-            content: s.fragment().trim_end()
+            column: s.get_utf8_column(),
+            content: &String::from(s.fragment().trim_end())
         },
     )(input)
 }
@@ -47,6 +51,7 @@ mod tests {
         assert_eq!(x, Link {
             line: 1,
             offset: 2,
+            column: 3,
             content: "Apple"
         });
     }
@@ -58,6 +63,7 @@ mod tests {
         assert_eq!(x, Link {
             line: 1,
             offset: 3,
+            column: 4,
             content: "Apple Bananas"
         });
     }
@@ -69,6 +75,7 @@ mod tests {
         assert_eq!(parse_text(test_input).unwrap().1, Text {
             line: 1,
             offset: 0,
+            column: 1,
             content: "Test "
         })
     }
@@ -86,22 +93,27 @@ mod tests {
         let expected: Vec<Link> = vec!(Link {
             line: 3,
             offset: 58,
+            column: 42,
             content: "References"
         }, Link {
             line: 3,
             offset: 77,
+            column: 61,
             content: "Other Documents"
         }, Link {
             line: 3,
             offset: 101,
+            column: 85,
             content: "More Information"
         }, Link {
             line: 5,
             offset: 145,
+            column: 25,
             content: "References"
         }, Link {
             line: 5,
             offset: 170,
+            column: 50,
             content: "Useful References"
         });
 
