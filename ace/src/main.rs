@@ -17,25 +17,30 @@ struct Args {
     file: String,
 }
 
-type LinkIndex<'a> = HashMap<String, Vec<Link<'a>>>;
+type LinkIndex<'a> = HashMap<&'a str, Vec<Link<'a>>>;
 
-fn load_links(mut link_idx: LinkIndex, filename: String, links: Vec<Link>) ->  () {
-    link_idx.insert(filename, links.clone());
+fn load_links<'a>(link_idx: &'a mut LinkIndex<'a>, filename: &'a str, links: Vec<Link<'a>>) -> () {
+    link_idx.insert(filename, links);
+    println!("{:?}", link_idx);
     ()
 }
 
-fn handle_contents(link_idx: LinkIndex, filename: String, content: String) {
+fn handle_contents<'a>(link_idx: &'a mut LinkIndex<'a>, filename: &'a str, content: &'a str) -> () {
     let input = Span::new(&content);
 
     parser::parse(input)
           .map(|(_rest, links)| load_links(link_idx, filename, links));
+    ()
 }
 fn main() {
     let args = Args::parse();
-    let linkidx: HashMap<String, Vec<Link>> = HashMap::new();
 
     let res = loader::load(args.file.clone());
-    res.map(|contents| handle_contents(linkidx, args.file.clone(), contents));
+    res.map(|contents| {
+        let mut linkidx: HashMap<&str, Vec<Link>> = HashMap::new();
+        let filename = &args.file.clone();
+        handle_contents(&mut linkidx, filename, &contents)
+    });
 
     // loader::load()
     // read a file

@@ -6,6 +6,6 @@ pub struct Token<T> {
     pub content: T,
 }
 
-pub type Link<'a> = Token<&'a String>;
-pub type Text<'a> = Token<&'a String>;
+pub type Link<'a> = Token<&'a str>;
+pub type Text<'a> = Token<&'a str>;
 

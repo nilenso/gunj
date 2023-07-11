@@ -33,7 +33,7 @@ pub fn parse_link(input: Span) -> IResult<Span, Link> {
             line: s.location_line(),
             offset: s.location_offset(),
             column: s.get_utf8_column(),
-            content: &String::from(s.fragment().trim_end())
+            content: s.fragment().trim_end()
         },
     )(input)
 }
